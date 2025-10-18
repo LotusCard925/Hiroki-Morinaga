@@ -213,11 +213,15 @@ function getImageAsBase64(imagePath) {
                 const canvas = document.createElement('canvas');
                 const ctx = canvas.getContext('2d');
                 
-                // 画像のアスペクト比を保持してサイズを設定
+                // 画像サイズを設定（正方形画像に最適化）
                 const maxSize = 512;
                 let canvasWidth, canvasHeight;
                 
-                if (img.width > img.height) {
+                if (img.width === img.height) {
+                    // 正方形の場合
+                    canvasWidth = Math.min(img.width, maxSize);
+                    canvasHeight = canvasWidth;
+                } else if (img.width > img.height) {
                     // 横長の場合
                     canvasWidth = Math.min(img.width, maxSize);
                     canvasHeight = (canvasWidth * img.height) / img.width;
