@@ -205,8 +205,49 @@ function createCustomModal(title, content) {
 
 // 連絡先ダウンロード機能（モーダル用）
 function downloadContactFromModal() {
-    // vCard形式の連絡先情報を作成
-    const vCardData = `BEGIN:VCARD
+    // デバイスを判定
+    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+    const isAndroid = /Android/.test(navigator.userAgent);
+    
+    if (isIOS) {
+        // iOSの場合：連絡先アプリを直接開く
+        const contactData = {
+            name: '守永博貴',
+            company: '株式会社FC&M',
+            title: '代表取締役',
+            email: 'morinaga@fcandm926.com',
+            phone: '09052926482',
+            instagram: 'https://www.instagram.com/fcandm.morinaga',
+            facebook: 'https://www.facebook.com/profile.php?id=100014048287809',
+            note: '財務コンサルタント・トリプルインカムメソッド開発者'
+        };
+        
+        // iOS連絡先アプリのURL形式
+        const contactURL = `contacts://add?name=${encodeURIComponent(contactData.name)}&email=${encodeURIComponent(contactData.email)}&phone=${encodeURIComponent(contactData.phone)}&company=${encodeURIComponent(contactData.company)}&title=${encodeURIComponent(contactData.title)}`;
+        
+        // 連絡先アプリを開く
+        window.location.href = contactURL;
+        
+        // フォールバック：連絡先アプリが開かない場合の案内
+        setTimeout(() => {
+            const instructions = `連絡先アプリが開かない場合は、以下の手順で追加してください：
+
+1. 連絡先アプリを開く
+2. 「+」ボタンをタップ
+3. 以下の情報を入力：
+   名前: 守永博貴
+   会社: 株式会社FC&M
+   役職: 代表取締役
+   メール: morinaga@fcandm926.com
+   電話: 090-5292-6482
+   Instagram: @fcandm.morinaga
+   Facebook: 守永博貴`;
+            alert(instructions);
+        }, 2000);
+        
+    } else if (isAndroid) {
+        // Androidの場合：vCard形式でダウンロード（Androidの連絡先アプリで自動インポート）
+        const vCardData = `BEGIN:VCARD
 VERSION:3.0
 FN:守永博貴
 ORG:株式会社FC&M
@@ -215,25 +256,51 @@ EMAIL:morinaga@fcandm926.com
 TEL:09052926482
 URL:https://www.instagram.com/fcandm.morinaga
 URL:https://www.facebook.com/profile.php?id=100014048287809
-NOTE:財務コンサルタント、トリプルインカムメソッド開発者、社外CFO養成プログラム展開
+NOTE:財務コンサルタント・トリプルインカムメソッド開発者
 END:VCARD`;
 
-    // Blobオブジェクトを作成してダウンロード
-    const blob = new Blob([vCardData], { type: 'text/vcard' });
-    const url = window.URL.createObjectURL(blob);
-    
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = '守永博貴.vcf';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    
-    // メモリリークを防ぐ
-    window.URL.revokeObjectURL(url);
-    
-    // 成功メッセージ
-    showToast('守永博貴の連絡先がダウンロードされました！');
+        const blob = new Blob([vCardData], { type: 'text/vcard;charset=utf-8' });
+        const url = URL.createObjectURL(blob);
+        
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = '守永博貴.vcf';
+        link.style.display = 'none';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+        
+        alert('連絡先ファイルがダウンロードされました。ファイルを開くと連絡先アプリで追加できます。');
+        
+    } else {
+        // PC/その他の場合：vCard形式でダウンロード
+        const vCardData = `BEGIN:VCARD
+VERSION:3.0
+FN:守永博貴
+ORG:株式会社FC&M
+TITLE:代表取締役
+EMAIL:morinaga@fcandm926.com
+TEL:09052926482
+URL:https://www.instagram.com/fcandm.morinaga
+URL:https://www.facebook.com/profile.php?id=100014048287809
+NOTE:財務コンサルタント・トリプルインカムメソッド開発者
+END:VCARD`;
+
+        const blob = new Blob([vCardData], { type: 'text/vcard;charset=utf-8' });
+        const url = URL.createObjectURL(blob);
+        
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = '守永博貴.vcf';
+        link.style.display = 'none';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+        
+        showToast('守永博貴の連絡先がダウンロードされました！');
+    }
     
     // モーダルを閉じる
     const saveModal = document.getElementById('save-options-modal');
