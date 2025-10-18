@@ -67,7 +67,7 @@ self.addEventListener('push', function(event) {
     };
 
     event.waitUntil(
-        self.registration.showNotification('LotusCard', options)
+        self.registration.showNotification('守永博貴', options)
     );
 });
 

@@ -121,13 +121,13 @@ function initSocialLinks() {
 function showContactInfo() {
     const contactInfo = `
 連絡先情報:
-📧 Email: yu_ta20051021@icloud.com
-📱 Phone: 080-9735-2005
-📷 Instagram: @yuta223_6767
-🐦 Twitter: @tsutsumiyuta20051021
+📧 Email: morinaga@fcandm926.com
+📱 Phone: 090-5292-6482
+📷 Instagram: @fcandm.morinaga
+📘 Facebook: 守永博貴
     `.trim();
     
-    createCustomModal('堤祐太 - 連絡先情報', contactInfo);
+    createCustomModal('守永博貴 - 連絡先情報', contactInfo);
 }
 
 // カスタムモーダル作成
@@ -203,19 +203,19 @@ function createCustomModal(title, content) {
     document.head.appendChild(style);
 }
 
-// 連絡先ダウンロード機能
-function downloadContact() {
+// 連絡先ダウンロード機能（モーダル用）
+function downloadContactFromModal() {
     // vCard形式の連絡先情報を作成
     const vCardData = `BEGIN:VCARD
 VERSION:3.0
-FN:堤祐太
-ORG:近畿大学
-TITLE:経営学部キャリアマネジメント学科
-EMAIL:yu_ta20051021@icloud.com
-TEL:08097352005
-URL:https://www.instagram.com/yuta223_6767
-URL:https://twitter.com/tsutsumiyuta20051021
-NOTE:学生団体ツナグ・HANZEON運営、よさこい社会人チーム『嘉們』正規メンバー、和太鼓全国大会優勝
+FN:守永博貴
+ORG:株式会社FC&M
+TITLE:代表取締役
+EMAIL:morinaga@fcandm926.com
+TEL:09052926482
+URL:https://www.instagram.com/fcandm.morinaga
+URL:https://www.facebook.com/profile.php?id=100014048287809
+NOTE:財務コンサルタント、トリプルインカムメソッド開発者、社外CFO養成プログラム展開
 END:VCARD`;
 
     // Blobオブジェクトを作成してダウンロード
@@ -224,7 +224,7 @@ END:VCARD`;
     
     const link = document.createElement('a');
     link.href = url;
-    link.download = '堤祐太.vcf';
+    link.download = '守永博貴.vcf';
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -233,7 +233,14 @@ END:VCARD`;
     window.URL.revokeObjectURL(url);
     
     // 成功メッセージ
-    showToast('堤祐太の連絡先がダウンロードされました！');
+    showToast('守永博貴の連絡先がダウンロードされました！');
+    
+    // モーダルを閉じる
+    const saveModal = document.getElementById('save-options-modal');
+    if (saveModal) {
+        saveModal.style.display = 'none';
+        document.body.style.overflow = '';
+    }
 }
 
 // タブ切り替え機能
@@ -659,6 +666,366 @@ function authenticateAdmin() {
         return false;
     }
 }
+
+// 自己紹介のトグル機能
+function toggleIntro() {
+    const preview = document.querySelector('.intro-preview');
+    const detail = document.querySelector('.intro-detail');
+    
+    if (detail.style.display === 'none') {
+        // 詳細を表示
+        preview.style.display = 'none';
+        detail.style.display = 'block';
+        detail.style.animation = 'fadeInUp 0.5s ease';
+    } else {
+        // 簡潔表示に戻す
+        detail.style.display = 'none';
+        preview.style.display = 'block';
+        preview.style.animation = 'fadeInUp 0.5s ease';
+    }
+}
+
+// 画像拡大モーダルを開く
+function openImageModal(imageSrc, imageTitle) {
+    // 既存のモーダルがあれば削除
+    const existingModal = document.querySelector('.image-modal');
+    if (existingModal) {
+        existingModal.remove();
+    }
+
+    // モーダルオーバーレイ
+    const modalOverlay = document.createElement('div');
+    modalOverlay.className = 'image-modal';
+    modalOverlay.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.9);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 2000;
+        opacity: 0;
+        visibility: hidden;
+        transition: all 0.3s ease;
+        overflow: hidden;
+    `;
+
+    // モーダルコンテンツ
+    const modalContent = document.createElement('div');
+    modalContent.className = 'image-modal-content';
+    modalContent.style.cssText = `
+        position: relative;
+        width: 100%;
+        height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+    `;
+
+    const titleHtml = imageTitle ? `
+        <div class="image-modal-title" style="
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: white;
+            font-size: 18px;
+            font-weight: 600;
+            text-align: center;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+            z-index: 10;
+        ">${imageTitle}</div>
+    ` : '';
+
+    modalContent.innerHTML = `
+        <button class="image-modal-close" onclick="closeImageModal()" style="
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: none;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            font-size: 20px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+            z-index: 10;
+        ">
+            <i class="fas fa-times"></i>
+        </button>
+        <div class="image-container" style="
+            position: relative;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        ">
+            <img id="modal-image" src="${imageSrc}" alt="${imageTitle}" style="
+                max-width: 100%;
+                max-height: 100%;
+                object-fit: contain;
+                border-radius: 12px;
+                box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+                animation: zoomIn 0.3s ease;
+                cursor: grab;
+                user-select: none;
+                transition: transform 0.1s ease;
+            ">
+        </div>
+        ${titleHtml}
+    `;
+
+    modalOverlay.appendChild(modalContent);
+    document.body.appendChild(modalOverlay);
+
+    // アニメーション用のCSS追加
+    const style = document.createElement('style');
+    style.textContent = `
+        @keyframes zoomIn {
+            from {
+                transform: scale(0.8);
+                opacity: 0;
+            }
+            to {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+    `;
+    document.head.appendChild(style);
+
+    // モーダルを表示
+    setTimeout(() => {
+        modalOverlay.classList.add('active');
+        modalOverlay.style.opacity = '1';
+        modalOverlay.style.visibility = 'visible';
+    }, 10);
+
+    // ピンチズーム機能を初期化
+    initPinchZoom(modalContent);
+
+    // オーバーレイクリックで閉じる（画像以外の部分）
+    modalOverlay.addEventListener('click', function(e) {
+        if (e.target === modalOverlay || e.target.classList.contains('image-container')) {
+            closeImageModal();
+        }
+    });
+
+    // ESCキーで閉じる
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            closeImageModal();
+        }
+    });
+}
+
+// 画像拡大モーダルを閉じる
+function closeImageModal() {
+    const modal = document.querySelector('.image-modal');
+    if (modal) {
+        modal.style.opacity = '0';
+        modal.style.visibility = 'hidden';
+        setTimeout(() => {
+            modal.remove();
+        }, 300);
+    }
+}
+
+// ピンチズーム機能の初期化
+function initPinchZoom(container) {
+    const image = container.querySelector('#modal-image');
+    if (!image) return;
+
+    let scale = 1;
+    let lastScale = 1;
+    let isDragging = false;
+    let startX = 0;
+    let startY = 0;
+    let translateX = 0;
+    let translateY = 0;
+    let lastTranslateX = 0;
+    let lastTranslateY = 0;
+
+    // タッチイベント
+    let touches = [];
+    let lastDistance = 0;
+
+    // マウスホイールズーム
+    image.addEventListener('wheel', function(e) {
+        e.preventDefault();
+        const delta = e.deltaY > 0 ? 0.9 : 1.1;
+        scale = Math.max(0.5, Math.min(5, scale * delta));
+        updateTransform();
+    });
+
+    // タッチ開始
+    image.addEventListener('touchstart', function(e) {
+        e.preventDefault();
+        touches = Array.from(e.touches);
+        
+        if (touches.length === 1) {
+            // 単一タッチ - ドラッグ開始
+            isDragging = true;
+            startX = touches[0].clientX - translateX;
+            startY = touches[0].clientY - translateY;
+        } else if (touches.length === 2) {
+            // 二本指 - ピンチズーム
+            isDragging = false;
+            lastDistance = getDistance(touches[0], touches[1]);
+            lastScale = scale;
+        }
+    }, { passive: false });
+
+    // タッチ移動
+    image.addEventListener('touchmove', function(e) {
+        e.preventDefault();
+        touches = Array.from(e.touches);
+
+        if (touches.length === 1 && isDragging) {
+            // 単一タッチ - ドラッグ
+            translateX = touches[0].clientX - startX;
+            translateY = touches[0].clientY - startY;
+            updateTransform();
+        } else if (touches.length === 2) {
+            // 二本指 - ピンチズーム
+            const currentDistance = getDistance(touches[0], touches[1]);
+            const scaleChange = currentDistance / lastDistance;
+            scale = Math.max(0.5, Math.min(5, lastScale * scaleChange));
+            updateTransform();
+        }
+    }, { passive: false });
+
+    // タッチ終了
+    image.addEventListener('touchend', function(e) {
+        e.preventDefault();
+        touches = Array.from(e.touches);
+        
+        if (touches.length === 0) {
+            isDragging = false;
+            lastTranslateX = translateX;
+            lastTranslateY = translateY;
+        }
+    }, { passive: false });
+
+    // マウスドラッグ
+    image.addEventListener('mousedown', function(e) {
+        e.preventDefault();
+        isDragging = true;
+        startX = e.clientX - translateX;
+        startY = e.clientY - translateY;
+        image.style.cursor = 'grabbing';
+    });
+
+    image.addEventListener('mousemove', function(e) {
+        if (isDragging) {
+            e.preventDefault();
+            translateX = e.clientX - startX;
+            translateY = e.clientY - startY;
+            updateTransform();
+        }
+    });
+
+    image.addEventListener('mouseup', function(e) {
+        isDragging = false;
+        image.style.cursor = 'grab';
+        lastTranslateX = translateX;
+        lastTranslateY = translateY;
+    });
+
+    image.addEventListener('mouseleave', function(e) {
+        isDragging = false;
+        image.style.cursor = 'grab';
+        lastTranslateX = translateX;
+        lastTranslateY = translateY;
+    });
+
+    // ダブルクリックでリセット
+    image.addEventListener('dblclick', function(e) {
+        e.preventDefault();
+        scale = 1;
+        translateX = 0;
+        translateY = 0;
+        lastTranslateX = 0;
+        lastTranslateY = 0;
+        updateTransform();
+    });
+
+    // 変形を適用
+    function updateTransform() {
+        image.style.transform = `translate(${translateX}px, ${translateY}px) scale(${scale})`;
+    }
+
+    // 二点間の距離を計算
+    function getDistance(touch1, touch2) {
+        const dx = touch1.clientX - touch2.clientX;
+        const dy = touch1.clientY - touch2.clientY;
+        return Math.sqrt(dx * dx + dy * dy);
+    }
+}
+
+// 情報保存モーダルの機能
+document.addEventListener('DOMContentLoaded', function() {
+    const saveModal = document.getElementById('save-options-modal');
+    const openBtn = document.getElementById('open-save-modal-button');
+    const closeBtn = document.getElementById('close-modal-button');
+    const addToHomeBtn = document.getElementById('add-to-home-screen-button');
+
+    if (openBtn) openBtn.addEventListener('click', () => {
+        if (saveModal) { 
+            saveModal.style.display = 'flex'; 
+            document.body.style.overflow = 'hidden'; 
+        }
+    });
+    
+    if (closeBtn) closeBtn.addEventListener('click', () => {
+        if (saveModal) { 
+            saveModal.style.display = 'none'; 
+            document.body.style.overflow = ''; 
+        }
+    });
+    
+    if (saveModal) saveModal.addEventListener('click', (e) => {
+        if (e.target === saveModal) { 
+            saveModal.style.display = 'none'; 
+            document.body.style.overflow = ''; 
+        }
+    });
+
+    if (addToHomeBtn) addToHomeBtn.addEventListener('click', () => {
+        const instructions = `ホーム画面に追加する手順
+
+【iPhone/iPadの場合】
+1. Safariでサイトを開く
+2. 共有アイコンをタップ
+3. 「ホーム画面に追加」
+4. 「追加」をタップ
+
+【Android(Chrome)の場合】
+1. Chromeでサイトを開く
+2. 右上の「⋮」メニュー
+3. 「ホーム画面に追加」
+4. 案内に従って追加
+
+追加後は守永博貴さんのアイコンと名前で表示されます。`;
+        alert(instructions);
+        if (saveModal) { 
+            saveModal.style.display = 'none'; 
+            document.body.style.overflow = ''; 
+        }
+    });
+});
 
 // ページ読み込み時に編集ボタンを表示するかチェック
 document.addEventListener('DOMContentLoaded', function() {
