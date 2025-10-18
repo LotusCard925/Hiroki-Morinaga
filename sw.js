@@ -4,7 +4,10 @@ const urlsToCache = [
     '/',
     '/index.html',
     '/styles.css',
-    '/script.js'
+    '/script.js',
+    '/icon copy.jpeg',
+    '/background copy.jpeg',
+    '/manifest.json'
 ];
 
 // インストール時の処理
@@ -57,8 +60,8 @@ function doBackgroundSync() {
 self.addEventListener('push', function(event) {
     const options = {
         body: event.data ? event.data.text() : '新しい更新があります',
-        icon: '/icon-192x192.png',
-        badge: '/badge-72x72.png',
+        icon: '/icon copy.jpeg',
+        badge: '/icon copy.jpeg',
         vibrate: [100, 50, 100],
         data: {
             dateOfArrival: Date.now(),
