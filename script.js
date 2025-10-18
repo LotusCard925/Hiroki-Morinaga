@@ -213,9 +213,22 @@ function getImageAsBase64(imagePath) {
                 const canvas = document.createElement('canvas');
                 const ctx = canvas.getContext('2d');
                 
-                // 画像サイズを適切に設定
-                canvas.width = Math.min(img.width, 512);
-                canvas.height = Math.min(img.height, 512);
+                // 画像のアスペクト比を保持してサイズを設定
+                const maxSize = 512;
+                let canvasWidth, canvasHeight;
+                
+                if (img.width > img.height) {
+                    // 横長の場合
+                    canvasWidth = Math.min(img.width, maxSize);
+                    canvasHeight = (canvasWidth * img.height) / img.width;
+                } else {
+                    // 縦長の場合
+                    canvasHeight = Math.min(img.height, maxSize);
+                    canvasWidth = (canvasHeight * img.width) / img.height;
+                }
+                
+                canvas.width = canvasWidth;
+                canvas.height = canvasHeight;
                 
                 ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
                 const dataURL = canvas.toDataURL('image/jpeg', 0.8);
@@ -282,17 +295,8 @@ END:VCARD`;
         document.body.removeChild(link);
         URL.revokeObjectURL(url);
         
-        // デバイス別のメッセージ
-        const hasImage = profileImageBase64 && profileImageBase64.length > 0;
-        const imageMessage = hasImage ? 'プロフィール画像も含まれています。' : '';
-        
-        if (isIOS) {
-            alert(`連絡先ファイルがダウンロードされました。ファイルを開くと連絡先アプリで追加できます。${imageMessage}`);
-        } else if (isAndroid) {
-            alert(`連絡先ファイルがダウンロードされました。ファイルを開くと連絡先アプリで追加できます。${imageMessage}`);
-        } else {
-            showToast(`守永博貴の連絡先がダウンロードされました！${imageMessage}`);
-        }
+        // ポップアップメッセージを削除し、直接ダウンロード
+        // デバイス別の処理は不要なポップアップなしで実行
         
     } catch (error) {
         console.error('連絡先保存エラー:', error);
