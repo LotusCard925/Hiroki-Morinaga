@@ -203,51 +203,53 @@ function createCustomModal(title, content) {
     document.head.appendChild(style);
 }
 
-// 連絡先ダウンロード機能（モーダル用）
-function downloadContactFromModal() {
-    // デバイスを判定
-    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
-    const isAndroid = /Android/.test(navigator.userAgent);
-    
-    if (isIOS) {
-        // iOSの場合：連絡先アプリを直接開く
-        const contactData = {
-            name: '守永博貴',
-            company: '株式会社FC&M',
-            title: '代表取締役',
-            email: 'morinaga@fcandm926.com',
-            phone: '09052926482',
-            instagram: 'https://www.instagram.com/fcandm.morinaga',
-            facebook: 'https://www.facebook.com/profile.php?id=100014048287809',
-            note: '財務コンサルタント・トリプルインカムメソッド開発者'
+// 画像をBase64に変換する関数（修正版）
+function getImageAsBase64(imagePath) {
+    return new Promise((resolve, reject) => {
+        const img = new Image();
+        // CORS問題を回避するため、crossOriginを削除
+        img.onload = function() {
+            try {
+                const canvas = document.createElement('canvas');
+                const ctx = canvas.getContext('2d');
+                
+                // 画像サイズを適切に設定
+                canvas.width = Math.min(img.width, 512);
+                canvas.height = Math.min(img.height, 512);
+                
+                ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                const dataURL = canvas.toDataURL('image/jpeg', 0.8);
+                resolve(dataURL.split(',')[1]); // Base64部分のみを取得
+            } catch (error) {
+                console.log('画像変換エラー:', error);
+                resolve(''); // エラーの場合は空文字
+            }
         };
-        
-        // iOS連絡先アプリのURL形式
-        const contactURL = `contacts://add?name=${encodeURIComponent(contactData.name)}&email=${encodeURIComponent(contactData.email)}&phone=${encodeURIComponent(contactData.phone)}&company=${encodeURIComponent(contactData.company)}&title=${encodeURIComponent(contactData.title)}`;
-        
-        // 連絡先アプリを開く
-        window.location.href = contactURL;
-        
-        // フォールバック：連絡先アプリが開かない場合の案内
-        setTimeout(() => {
-            const instructions = `連絡先アプリが開かない場合は、以下の手順で追加してください：
+        img.onerror = (error) => {
+            console.log('画像読み込みエラー:', error);
+            resolve(''); // エラーの場合は空文字
+        };
+        img.src = imagePath;
+    });
+}
 
-1. 連絡先アプリを開く
-2. 「+」ボタンをタップ
-3. 以下の情報を入力：
-   名前: 守永博貴
-   会社: 株式会社FC&M
-   役職: 代表取締役
-   メール: morinaga@fcandm926.com
-   電話: 090-5292-6482
-   Instagram: @fcandm.morinaga
-   Facebook: 守永博貴`;
-            alert(instructions);
-        }, 2000);
+// 連絡先ダウンロード機能（モーダル用）
+async function downloadContactFromModal() {
+    try {
+        // デバイスを判定
+        const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+        const isAndroid = /Android/.test(navigator.userAgent);
         
-    } else if (isAndroid) {
-        // Androidの場合：vCard形式でダウンロード（Androidの連絡先アプリで自動インポート）
-        const vCardData = `BEGIN:VCARD
+        // プロフィール画像をBase64で取得（エラーが発生しても続行）
+        let profileImageBase64 = '';
+        try {
+            profileImageBase64 = await getImageAsBase64('icon copy.jpeg');
+        } catch (error) {
+            console.log('画像取得エラー（続行）:', error);
+        }
+        
+        // vCardを作成
+        let vCardData = `BEGIN:VCARD
 VERSION:3.0
 FN:守永博貴
 ORG:株式会社FC&M
@@ -256,50 +258,45 @@ EMAIL:morinaga@fcandm926.com
 TEL:09052926482
 URL:https://www.instagram.com/fcandm.morinaga
 URL:https://www.facebook.com/profile.php?id=100014048287809
-NOTE:財務コンサルタント・トリプルインカムメソッド開発者
+NOTE:財務コンサルタント・トリプルインカムメソッド開発者`;
+
+        // プロフィール画像がある場合のみ追加
+        if (profileImageBase64 && profileImageBase64.length > 0) {
+            vCardData += `
+PHOTO;TYPE=JPEG;ENCODING=BASE64:${profileImageBase64}`;
+        }
+
+        vCardData += `
 END:VCARD`;
 
+        // ファイルダウンロード
         const blob = new Blob([vCardData], { type: 'text/vcard;charset=utf-8' });
         const url = URL.createObjectURL(blob);
         
         const link = document.createElement('a');
         link.href = url;
-        link.download = '守永博貴.vcf';
+        link.download = 'Morinaga_Hiroki.vcf'; // 英語ファイル名で問題回避
         link.style.display = 'none';
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
         URL.revokeObjectURL(url);
         
-        alert('連絡先ファイルがダウンロードされました。ファイルを開くと連絡先アプリで追加できます。');
+        // デバイス別のメッセージ
+        const hasImage = profileImageBase64 && profileImageBase64.length > 0;
+        const imageMessage = hasImage ? 'プロフィール画像も含まれています。' : '';
         
-    } else {
-        // PC/その他の場合：vCard形式でダウンロード
-        const vCardData = `BEGIN:VCARD
-VERSION:3.0
-FN:守永博貴
-ORG:株式会社FC&M
-TITLE:代表取締役
-EMAIL:morinaga@fcandm926.com
-TEL:09052926482
-URL:https://www.instagram.com/fcandm.morinaga
-URL:https://www.facebook.com/profile.php?id=100014048287809
-NOTE:財務コンサルタント・トリプルインカムメソッド開発者
-END:VCARD`;
-
-        const blob = new Blob([vCardData], { type: 'text/vcard;charset=utf-8' });
-        const url = URL.createObjectURL(blob);
+        if (isIOS) {
+            alert(`連絡先ファイルがダウンロードされました。ファイルを開くと連絡先アプリで追加できます。${imageMessage}`);
+        } else if (isAndroid) {
+            alert(`連絡先ファイルがダウンロードされました。ファイルを開くと連絡先アプリで追加できます。${imageMessage}`);
+        } else {
+            showToast(`守永博貴の連絡先がダウンロードされました！${imageMessage}`);
+        }
         
-        const link = document.createElement('a');
-        link.href = url;
-        link.download = '守永博貴.vcf';
-        link.style.display = 'none';
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        URL.revokeObjectURL(url);
-        
-        showToast('守永博貴の連絡先がダウンロードされました！');
+    } catch (error) {
+        console.error('連絡先保存エラー:', error);
+        alert('連絡先の保存中にエラーが発生しました。再度お試しください。');
     }
     
     // モーダルを閉じる
@@ -1075,17 +1072,17 @@ document.addEventListener('DOMContentLoaded', function() {
 
 【iPhone/iPadの場合】
 1. Safariでサイトを開く
-2. 共有アイコンをタップ
-3. 「ホーム画面に追加」
+2. 共有アイコン（□↑）をタップ
+3. 「ホーム画面に追加」をタップ
 4. 「追加」をタップ
 
 【Android(Chrome)の場合】
 1. Chromeでサイトを開く
-2. 右上の「⋮」メニュー
-3. 「ホーム画面に追加」
+2. 右上の「⋮」メニューをタップ
+3. 「ホーム画面に追加」をタップ
 4. 案内に従って追加
 
-追加後は守永博貴さんのアイコンと名前で表示されます。`;
+追加後は守永博貴さんのプロフィール画像がアイコンとして表示され、「守永博貴」という名前でホーム画面に追加されます。`;
         alert(instructions);
         if (saveModal) { 
             saveModal.style.display = 'none'; 
