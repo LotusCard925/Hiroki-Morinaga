@@ -269,10 +269,12 @@ async function downloadContactFromModal() {
         let vCardData = `BEGIN:VCARD
 VERSION:3.0
 FN:守永博貴
+N:守永;博貴;;;
 ORG:株式会社FC&M
 TITLE:代表取締役
 EMAIL:morinaga@fcandm926.com
 TEL:09052926482
+URL;TYPE=HOME:https://hiroki-morinaga.vercel.app/
 URL:https://www.instagram.com/fcandm.morinaga
 URL:https://www.facebook.com/profile.php?id=100014048287809
 NOTE:財務コンサルタント・トリプルインカムメソッド開発者`;
